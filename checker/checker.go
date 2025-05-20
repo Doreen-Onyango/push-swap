@@ -28,18 +28,13 @@ func main() {
 	}
 
 	stackA, err := parseInput(os.Args[1])
-	if err != nil {
+	if err != nil || hasDuplicates(stackA) {
 		fmt.Fprintln(os.Stderr, "Error")
-		return
+		os.Exit(1)
 	}
 
-	if hasDuplicates(stackA) {
-		fmt.Fprintln(os.Stderr, "Error")
-		return
-	}
-
-	scanner := bufio.NewScanner(os.Stdin)
 	stackB := []int{}
+	scanner := bufio.NewScanner(os.Stdin)
 
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -48,7 +43,7 @@ func main() {
 		}
 		if !allowedInstructions[line] {
 			fmt.Fprintln(os.Stderr, "Error")
-			return
+			os.Exit(1)
 		}
 		applyInstruction(line, &stackA, &stackB)
 	}
@@ -60,13 +55,11 @@ func main() {
 	}
 }
 
-// parseInput converts the input string to a slice of integers
 func parseInput(input string) ([]int, error) {
-	values := strings.Fields(input)
-	stack := make([]int, 0, len(values))
-
-	for _, v := range values {
-		num, err := strconv.Atoi(v)
+	parts := strings.Fields(input)
+	stack := make([]int, 0, len(parts))
+	for _, val := range parts {
+		num, err := strconv.Atoi(val)
 		if err != nil {
 			return nil, err
 		}
@@ -75,29 +68,26 @@ func parseInput(input string) ([]int, error) {
 	return stack, nil
 }
 
-// hasDuplicates checks for duplicate integers in the slice
 func hasDuplicates(nums []int) bool {
 	seen := make(map[int]bool)
-	for _, num := range nums {
-		if seen[num] {
+	for _, n := range nums {
+		if seen[n] {
 			return true
 		}
-		seen[num] = true
+		seen[n] = true
 	}
 	return false
 }
 
-// isSorted checks if the stack is sorted in ascending order
-func isSorted(nums []int) bool {
-	for i := 0; i < len(nums)-1; i++ {
-		if nums[i] > nums[i+1] {
+func isSorted(stack []int) bool {
+	for i := 0; i < len(stack)-1; i++ {
+		if stack[i] > stack[i+1] {
 			return false
 		}
 	}
 	return true
 }
 
-// applyInstruction executes the given instruction on the stacks
 func applyInstruction(instr string, a *[]int, b *[]int) {
 	switch instr {
 	case "sa":
@@ -128,15 +118,13 @@ func applyInstruction(instr string, a *[]int, b *[]int) {
 	}
 }
 
-// swap swaps the top two elements of the stack
 func swap(stack *[]int) {
 	if len(*stack) >= 2 {
 		(*stack)[0], (*stack)[1] = (*stack)[1], (*stack)[0]
 	}
 }
 
-// push moves the top element from src to dst
-func push(src *[]int, dst *[]int) {
+func push(src, dst *[]int) {
 	if len(*src) == 0 {
 		return
 	}
@@ -145,21 +133,16 @@ func push(src *[]int, dst *[]int) {
 	*dst = append([]int{val}, *dst...)
 }
 
-// rotate shifts the stack up (first element becomes last)
 func rotate(stack *[]int) {
-	if len(*stack) == 0 {
-		return
+	if len(*stack) > 0 {
+		first := (*stack)[0]
+		*stack = append((*stack)[1:], first)
 	}
-	val := (*stack)[0]
-	*stack = append((*stack)[1:], val)
 }
 
-// reverseRotate shifts the stack down (last element becomes first)
 func reverseRotate(stack *[]int) {
-	if len(*stack) == 0 {
-		return
+	if len(*stack) > 0 {
+		last := (*stack)[len(*stack)-1]
+		*stack = append([]int{last}, (*stack)[:len(*stack)-1]...)
 	}
-	lastIdx := len(*stack) - 1
-	val := (*stack)[lastIdx]
-	*stack = append([]int{val}, (*stack)[:lastIdx]...)
 }
