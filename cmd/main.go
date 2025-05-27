@@ -167,47 +167,50 @@ func sortSix(s *Stack) []string {
 
 func optimizedRadixSort(s *Stack) []string {
 	var instructions []string
-	offset := adjustNegatives(s.A)
-	maxBits := calculateMaxBits(s.A)
-	currentStack := "A"
 
-	for bit := 0; bit < maxBits; bit++ {
-		if currentStack == "A" {
-			count := len(s.A)
-			for i := 0; i < count; i++ {
-				num := s.A[0]
-				if ((num+offset)>>bit)&1 == 0 {
-					instructions = append(instructions, "pb")
-					push(&s.A, &s.B)
-				} else {
-					instructions = append(instructions, "ra")
-					rotate(&s.A)
-				}
-			}
-			currentStack = "B"
-		} else {
-			count := len(s.B)
-			for i := 0; i < count; i++ {
-				num := s.B[0]
-				if ((num+offset)>>bit)&1 == 0 {
-					instructions = append(instructions, "pa")
-					push(&s.B, &s.A)
-				} else {
-					instructions = append(instructions, "rb")
-					rotate(&s.B)
-				}
-			}
-			currentStack = "A"
-		}
+	// If stack is empty or has only one element, return empty instructions
+	if len(s.A) <= 1 {
+		return instructions
 	}
 
-	if currentStack == "B" {
+	offset := adjustNegatives(s.A)
+	maxBits := calculateMaxBits(s.A)
+
+	// Safety check to prevent infinite loops
+	if maxBits > 32 {
+		maxBits = 32 // Cap at 32 bits since we're dealing with integers
+	}
+
+	for bit := 0; bit < maxBits; bit++ {
+		// Count numbers that will go to stack B (0 bit)
+		zeroCount := 0
+		for i := 0; i < len(s.A); i++ {
+			if ((s.A[i]+offset)>>bit)&1 == 0 {
+				zeroCount++
+			}
+		}
+
+		// Push numbers with 0 at current bit to B
+		pushed := 0
+		for pushed < zeroCount {
+			if ((s.A[0]+offset)>>bit)&1 == 0 {
+				instructions = append(instructions, "pb")
+				push(&s.A, &s.B)
+				pushed++
+			} else {
+				instructions = append(instructions, "ra")
+				rotate(&s.A)
+			}
+		}
+
+		// Push everything back to A
 		for len(s.B) > 0 {
 			instructions = append(instructions, "pa")
 			push(&s.B, &s.A)
 		}
 	}
 
+	// Correct for negative numbers if needed
 	correctNegatives(s, &instructions, offset)
 	return instructions
 }
