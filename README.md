@@ -36,9 +36,15 @@ You may use the following stack instructions:
 ### 1. Build the executables:
 
 ```bash
-go build -o push-swap ./push_swap.go
-go build -o checker ./checker.go
+cd pushswap
+go build -o push-swap
+
+cd checker
+go build -o checker
+
+mv pushswap/push-swap checker // To enable you run from the checker directory as required
 ```
+
 
 ### 2. Run the program: 
 
@@ -55,6 +61,6 @@ go build -o checker ./checker.go
 ### 4. General usage:
 
 ```bash
-ARG="4 67 3 87 23"; ./push-swap "$ARG" | wc -l              //gives the word count of the number of instructions used to sort the stack.
-ARG="4 67 3 87 23"; ./push-swap "$ARG" | ./checker "$ARG"   //gives the OK if the checker passes and KO if the checker fails.
+ARG="4 3 5 1 2"; ./push-swap "$ARG" | wc -l              //gives the word count of the number of instructions used to sort the stack.
+ARG="4 3 5 1 2"; ./push-swap "$ARG" | ./checker "$ARG"   //gives the OK if the checker passes and KO if the checker fails.
 ```
